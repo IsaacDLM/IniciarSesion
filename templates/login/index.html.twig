@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Iniciar sesión{% endblock %}
+
+{% block body %}
+    <h1>Iniciar sesión</h1>
+    <p>Introduce tu nombre de usuario para continuar.</p>
+
+    {{ form_start(form) }}
+        <div class="field">
+            {{ form_label(form.username) }}
+            {{ form_widget(form.username) }}
+            {% if form.username.vars.errors|length %}
+                <div class="form-error" role="alert">{{ form_errors(form.username) }}</div>
+            {% endif %}
+        </div>
+        {{ form_rest(form) }}
+        <button type="submit">Entrar</button>
+    {{ form_end(form, {render_rest: false}) }}
+{% endblock %}

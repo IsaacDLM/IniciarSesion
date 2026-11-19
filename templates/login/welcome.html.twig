@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Bienvenida{% endblock %}
+
+{% block body %}
+    <h1>¡Hola, {{ username }}!</h1>
+    <p>Has iniciado sesión correctamente.</p>
+
+    <form action="{{ path('app_logout') }}" method="post">
+        <input type="hidden" name="_token" value="{{ csrf_token('logout') }}">
+        <button type="submit">Cerrar sesión</button>
+    </form>
+{% endblock %}
