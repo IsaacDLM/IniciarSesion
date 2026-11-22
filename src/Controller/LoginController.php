@@ -13,7 +13,7 @@ use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 final class LoginController extends AbstractController
 {
     #[Route('/', name: 'app_login', methods: ['GET', 'POST'])]
-    public function login(Request $request): Response
+    public function iniciarSesion(Request $request): Response
     {
         $form = $this->createForm(LoginType::class);
         $form->handleRequest($request);
@@ -23,44 +23,47 @@ final class LoginController extends AbstractController
                 $username = trim((string) $form->get('username')->getData());
                 $request->getSession()->set('username', $username);
                 $this->addFlash('success', sprintf('¡Inicio de sesión correcto, %s!', $username));
-
-                return $this->redirectToRoute('app_welcome');
+                $response = $this->redirectToRoute('app_welcome');
+            } else {
+                $this->addFlash('error', 'No se pudo iniciar sesión. Revisa el nombre de usuario.');
+                $response = $this->render('login/index.html.twig', [
+                    'form' => $form,
+                ]);
             }
-
-            $this->addFlash('error', 'No se pudo iniciar sesión. Revisa el nombre de usuario.');
+        } else {
+            $response = $this->render('login/index.html.twig', [
+                'form' => $form,
+            ]);
         }
-
-        return $this->render('login/index.html.twig', [
-            'form' => $form,
-        ]);
+        return $response;
     }
 
     #[Route('/bienvenida', name: 'app_welcome', methods: ['GET'])]
-    public function welcome(Request $request): Response
+    public function bienvenida(Request $request): Response
     {
         $username = $request->getSession()->get('username');
 
         if (!is_string($username) || '' === $username) {
-            return $this->redirectToRoute('app_login');
+            $response = $this->redirectToRoute('app_login');
+        } else {
+            $response = $this->render('login/welcome.html.twig', [
+                'username' => $username,
+            ]);
         }
-
-        return $this->render('login/welcome.html.twig', [
-            'username' => $username,
-        ]);
+        return $response;
     }
 
     #[Route('/cerrar-sesion', name: 'app_logout', methods: ['POST'])]
-    public function logout(Request $request, CsrfTokenManagerInterface $csrfTokenManager): Response
+    public function cerrarSesion(Request $request, CsrfTokenManagerInterface $csrfTokenManager): Response
     {
         if (!$csrfTokenManager->isTokenValid(new CsrfToken('logout', $request->request->getString('_token')))) {
             $this->addFlash('error', 'No se pudo cerrar sesión. Vuelve a intentarlo.');
-
-            return $this->redirectToRoute('app_welcome');
+            $response = $this->redirectToRoute('app_welcome');
+        } else {
+            $request->getSession()->remove('username');
+            $this->addFlash('success', 'Has cerrado sesión correctamente.');
+            $response = $this->redirectToRoute('app_login');
         }
-
-        $request->getSession()->remove('username');
-        $this->addFlash('success', 'Has cerrado sesión correctamente.');
-
-        return $this->redirectToRoute('app_login');
+        return $response;
     }
 }
